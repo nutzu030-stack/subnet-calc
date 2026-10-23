@@ -1,0 +1,10 @@
+/* Custom Background Image Configuration */
+body {
+    /* The linear-gradient adds a dark slate tint over your image 
+       so your text and cards remain crisp and easy to read */
+    background-image: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)), url('/images/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+}

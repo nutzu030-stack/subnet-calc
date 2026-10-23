@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPv4 Subnet Calculator API</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between font-sans">
+    <div class="max-w-7xl mx-auto p-10 w-full">
+        <!-- Header Card -->
+        <div class="bg-slate-800 p-12 rounded-2xl shadow-2xl border border-slate-700 mb-10 text-center">
+            <h1 class="text-6xl font-black tracking-tight text-emerald-400">IPv4 Subnet Calculator</h1>
+            <p class="text-slate-300 mt-4 text-xl font-semibold">Node.js & Express Backend Architecture</p>
+        </div>
+
+        <!-- Main Input Card -->
+        <div class="bg-slate-800 p-10 rounded-2xl shadow-2xl border border-slate-700">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <div class="md:col-span-2">
+                    <h2 class="text-3xl font-extrabold tracking-tight text-emerald-400 mb-3">IP Address</h2>
+                    <input type="text" id="ipInput" value="192.168.1.50" class="w-full bg-slate-900 border-2 border-slate-700 rounded-xl px-5 py-4 text-slate-100 text-xl font-mono focus:outline-none focus:border-emerald-500 transition">
+                </div>
+                <div>
+                    <h2 class="text-3xl font-extrabold tracking-tight text-emerald-400 mb-3">CIDR Prefix (/)</h2>
+                    <select id="cidrInput" class="w-full bg-slate-900 border-2 border-slate-700 rounded-xl px-5 py-4 text-slate-100 text-xl focus:outline-none focus:border-emerald-500 transition">
+                        <option value="24" selected>/24 (255.255.255.0)</option>
+                        <option value="25">/25 (255.255.255.128)</option>
+                        <option value="26">/26 (255.255.255.192)</option>
+                        <option value="27">/27 (255.255.255.224)</option>
+                        <option value="28">/28 (255.255.255.240)</option>
+                        <option value="29">/29 (255.255.255.248)</option>
+                        <option value="30">/30 (255.255.255.252)</option>
+                        <option value="16">/16 (255.255.0.0)</option>
+                        <option value="8">/8 (255.0.0.0)</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="calculate()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-5 rounded-xl transition duration-150 shadow-lg text-xl tracking-wide">Calculate Subnet</button>
+            <div id="errorMsg" class="text-red-400 text-base font-semibold mt-4 hidden"></div>
+        </div>
+
+        <!-- Results Card -->
+        <div id="resultsCard" class="mt-10 bg-slate-800 p-10 rounded-2xl shadow-2xl border border-slate-700 hidden">
+            <!-- Results Header & Badges -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700 pb-4 mb-8 gap-4">
+                <h2 class="text-4xl font-extrabold tracking-tight text-emerald-400">Calculation Results</h2>
+                <div class="flex gap-3">
+                    <span id="badgeClass" class="bg-slate-900 border border-slate-700 text-emerald-400 font-bold px-4 py-2 rounded-lg text-sm">--</span>
+                    <span id="badgeType" class="bg-slate-900 border border-slate-700 text-slate-300 font-bold px-4 py-2 rounded-lg text-sm">--</span>
+                </div>
+            </div>
+
+            <!-- Results Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 flex justify-between items-center">
+                    <span class="text-lg font-bold text-slate-200">Subnet Mask:</span> 
+                    <span id="resMask" class="text-emerald-400 font-mono text-3xl font-extrabold"></span>
+                </div>
+                <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 flex justify-between items-center">
+                    <span class="text-lg font-bold text-slate-200">Magic Number:</span> 
+                    <span id="resMagic" class="text-emerald-400 font-mono text-3xl font-extrabold"></span>
+                </div>
+                <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 flex justify-between items-center">
+                    <span class="text-lg font-bold text-slate-200">Network Address:</span> 
+                    <span id="resNetwork" class="text-emerald-400 font-mono text-3xl font-extrabold"></span>
+                </div>
+                <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 flex justify-between items-center">
+                    <span class="text-lg font-bold text-slate-200">Broadcast Address:</span> 
+                    <span id="resBroadcast" class="text-emerald-400 font-mono text-3xl font-extrabold"></span>
+                </div>
+                <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 flex justify-between items-center">
+                    <span class="text-lg font-bold text-slate-200">First Usable Host:</span> 
+                    <span id="resFirst" class="text-emerald-400 font-mono text-3xl font-extrabold"></span>
+                </div>
+                <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 flex justify-between items-center">
+                    <span class="text-lg font-bold text-slate-200">Last Usable Host:</span> 
+                    <span id="resLast" class="text-emerald-400 font-mono text-3xl font-extrabold"></span>
+                </div>
+                <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 flex justify-between items-center">
+                    <span class="text-lg font-bold text-slate-200">Total Hosts:</span> 
+                    <span id="resTotal" class="text-emerald-400 font-mono text-3xl font-extrabold"></span>
+                </div>
+                <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 flex justify-between items-center">
+                    <span class="text-lg font-bold text-slate-200">Usable Hosts:</span> 
+                    <span id="resUsable" class="text-emerald-400 font-mono text-3xl font-extrabold"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- IP Class Reference Guide Card -->
+<div class="mt-10 bg-slate-800 p-10 rounded-2xl shadow-2xl border border-slate-700">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 text-center">
+            <span class="font-black text-emerald-400 block text-2xl mb-2">Class A</span>
+            <span class="text-slate-200 block font-mono text-lg font-bold">1.x.x.x – 126.x.x.x</span>
+        </div>
+        <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 text-center">
+            <span class="font-black text-emerald-400 block text-2xl mb-2">Class B</span>
+            <span class="text-slate-200 block font-mono text-lg font-bold">128.x.x.x – 191.x.x.x</span>
+        </div>
+        <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 text-center">
+            <span class="font-black text-emerald-400 block text-2xl mb-2">Class C</span>
+            <span class="text-slate-200 block font-mono text-lg font-bold">192.x.x.x – 223.x.x.x</span>
+        </div>
+        <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 text-center">
+            <span class="font-black text-emerald-400 block text-2xl mb-2">Class D</span>
+            <span class="text-slate-200 block font-mono text-lg font-bold">224.x.x.x – 239.x.x.x</span>
+        </div>
+    </div>
+</div>
+    </div>
+
+    <footer class="text-center py-8 text-slate-500 text-base font-medium">
+        Built for Portfolios & Networking Labs
+    </footer>
+
+    <script>
+        async function calculate() {
+            const ip = document.getElementById('ipInput').value;
+            const cidr = document.getElementById('cidrInput').value;
+            const errorDiv = document.getElementById('errorMsg');
+            const resultsCard = document.getElementById('resultsCard');
+
+            errorDiv.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/calculate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ip, cidr })
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Server error');
+                }
+
+                document.getElementById('resMask').innerText = data.subnetMask;
+                document.getElementById('resMagic').innerText = data.magicNumber;
+                document.getElementById('resNetwork').innerText = data.networkAddress;
+                document.getElementById('resBroadcast').innerText = data.broadcastAddress;
+                document.getElementById('resFirst').innerText = data.firstHost;
+                document.getElementById('resLast').innerText = data.lastHost;
+                document.getElementById('resTotal').innerText = data.totalHosts;
+                document.getElementById('resUsable').innerText = data.usableHosts;
+
+                if (data.ipClass) document.getElementById('badgeClass').innerText = data.ipClass;
+                if (data.ipType) document.getElementById('badgeType').innerText = data.ipType;
+
+                resultsCard.classList.remove('hidden');
+            } catch (err) {
+                errorDiv.innerText = err.message;
+                errorDiv.classList.remove('hidden');
+                resultsCard.classList.add('hidden');
+            }
+        }
+
+        window.onload = calculate;
+    </script>
+</body>
+</html>
